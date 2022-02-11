@@ -12,19 +12,24 @@ namespace StarterAssets
 	public class ThirdPersonController : MonoBehaviour
 	{
 		[Header("Player")]
+
 		[Tooltip("Move speed of the character in m/s")]
 		public float MoveSpeed = 2.0f;
+
 		[Tooltip("Sprint speed of the character in m/s")]
 		public float SprintSpeed = 5.335f;
+
 		[Tooltip("How fast the character turns to face movement direction")]
 		[Range(0.0f, 0.3f)]
 		public float RotationSmoothTime = 0.12f;
+
 		[Tooltip("Acceleration and deceleration")]
 		public float SpeedChangeRate = 10.0f;
 
 		[Space(10)]
 		[Tooltip("The height the player can jump")]
 		public float JumpHeight = 8;
+
 		[Tooltip("The character uses its own gravity value. The engine default is -9.81f")]
 		public float JumpGravity = -15.0f;
 		public float FallGravity = -27.5f;
@@ -32,28 +37,38 @@ namespace StarterAssets
 		[Space(10)]
 		[Tooltip("Time required to pass before being able to jump again. Set to 0f to instantly jump again")]
 		public float JumpTimeout = 0.30f;
+
 		[Tooltip("Time required to pass before entering the fall state. Useful for walking down stairs")]
 		public float FallTimeout = 0.15f;
 
 		[Header("Player Grounded")]
+
 		[Tooltip("If the character is grounded or not. Not part of the CharacterController built in grounded check")]
 		public bool Grounded = true;
+
 		[Tooltip("Useful for rough ground")]
 		public float GroundedOffset = -0.14f;
+
 		[Tooltip("The radius of the grounded check. Should match the radius of the CharacterController")]
 		public float GroundedRadius = 0.28f;
+
 		[Tooltip("What layers the character uses as ground")]
 		public LayerMask GroundLayers;
 
 		[Header("Cinemachine")]
+
 		[Tooltip("The follow target set in the Cinemachine Virtual Camera that the camera will follow")]
 		public GameObject CinemachineCameraTarget;
+
 		[Tooltip("How far in degrees can you move the camera up")]
 		public float TopClamp = 70.0f;
+
 		[Tooltip("How far in degrees can you move the camera down")]
 		public float BottomClamp = -30.0f;
+
 		[Tooltip("Additional degress to override the camera. Useful for fine tuning camera position when locked")]
 		public float CameraAngleOverride = 0.0f;
+
 		[Tooltip("For locking the camera position on all axis")]
 		public bool LockCameraPosition = false;
 
@@ -91,6 +106,8 @@ namespace StarterAssets
 		public GameObject _mainCamera;
 		public TimeManager _timeManager;
 
+		public GameObject player_input;
+
 		const float CameraRotationSpeed = 0.007f;
 		const float _threshold = 0.01f;
 
@@ -111,6 +128,11 @@ namespace StarterAssets
 				CinemachineCameraTarget = GameObject.FindGameObjectWithTag("CinemachineTarget");
 			}
 
+			if (player_input == null)
+            {
+				player_input = GameObject.FindGameObjectWithTag("Player Input");
+            }
+
 		}
 
 		// Start is called when a script enters a scene
@@ -118,9 +140,9 @@ namespace StarterAssets
 		{
 			_hasAnimator = TryGetComponent(out _animator);
 			_controller = GetComponent<CharacterController>();
-			_input = GetComponent<StarterAssetsInputs>();
-			_playerInput = GetComponent<PlayerInput>();
-			_timeManager = GetComponent<TimeManager>();
+			_input = player_input.GetComponent<StarterAssetsInputs>();
+			_playerInput = player_input.GetComponent<PlayerInput>();
+			_timeManager = player_input.GetComponent<TimeManager>();
 
 			AssignAnimationIDs();
 
@@ -137,7 +159,7 @@ namespace StarterAssets
 			}
 
 			_hasAnimator = TryGetComponent(out _animator);
-			
+
 			JumpAndGravity();
 			GroundedCheck();
 			Move();
@@ -233,7 +255,7 @@ namespace StarterAssets
 			{
 				// creates curved result rather than a linear one giving a more organic speed change
 				// note T in Lerp is clamped, so we don't need to clamp our speed
-				_speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude, Time.deltaTime * (SpeedChangeRate * _timeManager.player_speed));
+				_speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude, Time.deltaTime * SpeedChangeRate);
 
 				// round speed to 3 decimal places
 				_speed = Mathf.Round(_speed * 1000f) / 1000f;
@@ -242,7 +264,7 @@ namespace StarterAssets
 			{
 				_speed = targetSpeed;
 			}
-			_animationBlend = Mathf.Lerp(_animationBlend, targetSpeed / _timeManager.player_speed, Time.deltaTime * (SpeedChangeRate * _timeManager.player_speed));
+			_animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
 
 			// normalise input direction
 			Vector3 inputDirection = new Vector3(_input.move.x, 0.0f, _input.move.y).normalized;
@@ -252,7 +274,7 @@ namespace StarterAssets
 			if (_input.move != Vector2.zero)
 			{
 				_targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg + _mainCamera.transform.eulerAngles.y;
-				float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity, RotationSmoothTime / _timeManager.player_speed);
+				float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity, RotationSmoothTime);
 
 				// rotate to face input direction relative to camera position
 				transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
@@ -268,7 +290,7 @@ namespace StarterAssets
 			if (_hasAnimator)
 			{
 				_animator.SetFloat(_animIDSpeed, _animationBlend);
-				_animator.SetFloat(_animIDMotionSpeed, inputMagnitude * _timeManager.player_speed);
+				_animator.SetFloat(_animIDMotionSpeed, inputMagnitude);
 			}
 		}
 
