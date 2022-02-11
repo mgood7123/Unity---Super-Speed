@@ -12,6 +12,7 @@ namespace StarterAssets
 		public bool sprint;
 		public bool focus;
 		public bool super_speed;
+		public bool paused;
 
 		[Header("Movement Settings")]
 		public bool analogMovement;
@@ -53,8 +54,14 @@ namespace StarterAssets
 
 		public void OnSuperSpeed(InputValue value)
 		{
+			Debug.Log("Super Speed");
 			super_speed = value.isPressed;
 		}
+
+		public void OnPause(InputValue value)
+        {
+			paused = value.isPressed;
+        }
 
 #if !UNITY_IOS || !UNITY_ANDROID
 

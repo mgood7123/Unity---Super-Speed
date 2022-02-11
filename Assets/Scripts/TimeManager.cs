@@ -10,7 +10,8 @@ public class TimeManager : MonoBehaviour
     [Header("Time")]
     public float player_speed = 1.0f;
     public float world_speed = 1.0f;
-    public float SUPER_SPEED_VALUE = 0.0007f;
+    // things break at 0.006f or lower
+    public float SUPER_SPEED_VALUE = 0.007f;
 
     public StarterAssetsInputs _input;
 
@@ -26,22 +27,31 @@ public class TimeManager : MonoBehaviour
     {
         if (_input.focus)
         {
-            world_speed = 0.0007f;
+            world_speed = SUPER_SPEED_VALUE;
+            if (_input.super_speed)
+            {
+                player_speed = 1.0f / SUPER_SPEED_VALUE;
+            }
+            else
+            {
+                player_speed = 1.0f;
+            }
         }
         else
         {
             world_speed = 1.0f;
+            if (_input.super_speed)
+            {
+                player_speed = 1.0f / 0.5f;
+            }
+            else
+            {
+                player_speed = 1.0f;
+            }
         }
 
         Time.timeScale = world_speed;
-
-        if (_input.super_speed)
-        {
-            player_speed = 1.0f / SUPER_SPEED_VALUE;
-        }
-        else
-        {
-            player_speed = 1.0f;
-        }
+        // update physics callback speed
+        Time.fixedDeltaTime = 0.02f * world_speed;
     }
 }
