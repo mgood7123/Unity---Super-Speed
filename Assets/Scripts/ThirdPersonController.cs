@@ -106,6 +106,8 @@ namespace StarterAssets
 		public GameObject _mainCamera;
 		public TimeManager _timeManager;
 
+		public float currentDeltaTime;
+
 		public GameObject player_input;
 
 		const float CameraRotationSpeed = 0.007f;
@@ -151,7 +153,7 @@ namespace StarterAssets
 			_fallTimeoutDelta = FallTimeout;
 		}
 
-		private void Update()
+		private void FixedUpdate()
 		{
 			if (_input.paused)
 			{
@@ -159,6 +161,9 @@ namespace StarterAssets
 			}
 
 			_hasAnimator = TryGetComponent(out _animator);
+
+			//currentDeltaTime = Time.deltaTime;
+			currentDeltaTime = _timeManager.getTime(this).fixedDeltaTime;
 
 			JumpAndGravity();
 			GroundedCheck();
@@ -223,7 +228,7 @@ namespace StarterAssets
 			// if there is no input, set the target speed to 0
 			if (_input.move == Vector2.zero) anim_speed = 0.0f;
 
-			targetSpeed = anim_speed * _timeManager.player_speed;
+			targetSpeed = anim_speed;
 
 			// a reference to the players current horizontal velocity
 			currentHorizontalSpeed = new Vector3(_controller.velocity.x, 0.0f, _controller.velocity.z).magnitude;
@@ -255,7 +260,7 @@ namespace StarterAssets
 			{
 				// creates curved result rather than a linear one giving a more organic speed change
 				// note T in Lerp is clamped, so we don't need to clamp our speed
-				_speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude, Time.deltaTime * SpeedChangeRate);
+				_speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude, currentDeltaTime * SpeedChangeRate);
 
 				// round speed to 3 decimal places
 				_speed = Mathf.Round(_speed * 1000f) / 1000f;
@@ -264,7 +269,7 @@ namespace StarterAssets
 			{
 				_speed = targetSpeed;
 			}
-			_animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
+			_animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, currentDeltaTime * SpeedChangeRate);
 
 			// normalise input direction
 			Vector3 inputDirection = new Vector3(_input.move.x, 0.0f, _input.move.y).normalized;
@@ -283,8 +288,13 @@ namespace StarterAssets
 
 			Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
 
+			Debug.Log("Time.deltaTime =                           " + Time.deltaTime);
+			Debug.Log("timeManager.getTime(this).deltaTime =      " + _timeManager.getTime(this).deltaTime);
+			Debug.Log("Time.fixedDeltaTime =                           " + Time.fixedDeltaTime);
+			Debug.Log("timeManager.getTime(this).fixedDeltaTime =      " + _timeManager.getTime(this).fixedDeltaTime);
+
 			// move the player
-			_controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
+			_controller.Move(targetDirection.normalized * (_speed * currentDeltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * currentDeltaTime);
 
 			// update animator if using character
 			if (_hasAnimator)
@@ -341,7 +351,7 @@ namespace StarterAssets
 				// fall timeout
 				if (_fallTimeoutDelta >= 0.0f)
 				{
-					_fallTimeoutDelta -= Time.deltaTime;
+					_fallTimeoutDelta -= currentDeltaTime;
 				}
 				else
 				{
@@ -361,11 +371,11 @@ namespace StarterAssets
 			{
 				if (_verticalVelocity >= 0.0f)
 				{
-					_verticalVelocity += JumpGravity * Time.deltaTime;
+					_verticalVelocity += JumpGravity * currentDeltaTime;
 				}
 				else
 				{
-					_verticalVelocity += FallGravity * Time.deltaTime;
+					_verticalVelocity += FallGravity * currentDeltaTime;
 				}
 			}
 		}
