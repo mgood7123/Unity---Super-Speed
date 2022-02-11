@@ -10,7 +10,7 @@ public class TimeManager : MonoBehaviour
     [Header("Time")]
     public float player_speed = 1.0f;
     public float world_speed = 1.0f;
-    public float SUPER_SPEED_VALUE = 0.01f;
+    public float SUPER_SPEED_VALUE = 0.0007f;
 
     public StarterAssetsInputs _input;
 
@@ -26,7 +26,7 @@ public class TimeManager : MonoBehaviour
     {
         if (_input.focus)
         {
-            world_speed = SUPER_SPEED_VALUE;
+            world_speed = 0.0007f;
         }
         else
         {
